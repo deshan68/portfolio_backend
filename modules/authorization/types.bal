@@ -4,6 +4,7 @@ public type JWTInterceptorConfig record {|
     string certFile;
     string privateKeyFile;
     decimal tokenExpiry;
+    decimal clockSkew;
 |};
 
 # Custom JWT Payload type

@@ -70,3 +70,4 @@ public isolated function validateJwt(string jwtToken, jwt:ValidatorConfig valida
 
     return payload;
 }
+
