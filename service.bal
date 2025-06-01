@@ -49,7 +49,7 @@ service http:InterceptableService / on new http:Listener(9090) {
             return <http:InternalServerError>{body: "Unable to retrieve user context"};
         }
 
-        if (payload.roles[0] != "user") {
+        if (payload.roles[0] != "admin") {
             return <http:Unauthorized>{body: "Insufficient permissions"};
         }
 

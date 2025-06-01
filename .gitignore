@@ -12,3 +12,4 @@ Config.toml
 
 private.key
 public.crt
+public.pem
