@@ -36,7 +36,7 @@ public type User record {|
     string about;
 |};
 
-# Book create record type.
+# User create record type.
 public type UserCreate record {|
     # User fist name
     string fistName;
@@ -51,3 +51,71 @@ public type UserCreate record {|
     string about;
 |};
 
+# Project record type.
+public type Project record {|
+    # Project ID
+    @sql:Column {name: "id"}
+    readonly int id;
+
+    # Project title
+    @sql:Column {name: "title"}
+    string title;
+
+    # Project description
+    @sql:Column {name: "description"}
+    string description;
+
+    # GitHub repository link
+    @sql:Column {name: "github_repo_link"}
+    string githubRepoLink;
+
+    # Other link
+    @sql:Column {name: "other_link"}
+    string otherLink;
+|};
+
+# Project create record type.
+public type ProjectCreate record {|
+    # Project title
+    string title;
+
+    # Project description
+    string description;
+
+    # GitHub repository link
+    string githubRepoLink;
+
+    # Other link
+    string otherLink;
+|};
+
+# Writing record type.
+public type Writing record {|
+    # Writing ID
+    @sql:Column {name: "id"}
+    readonly int id;
+
+    # Writing title
+    @sql:Column {name: "title"}
+    string title;
+
+    # Writing description
+    @sql:Column {name: "description"}
+    string description;
+
+    # Writing link
+    @sql:Column {name: "link"}
+    string link;
+|};
+
+# Writing create record type.
+public type WritingCreate record {|
+    # Writing title
+    string title;
+
+    # Writing description
+    string description;
+
+    # Writing link
+    string link;
+|};
