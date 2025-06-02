@@ -6,6 +6,8 @@ public configurable JWTInterceptorConfig jwtInterceptorConfig = ?;
 
 # Handle JWT generation and user management
 #
+# + user - Username for which the JWT token is generated 
+# + roles - Array of roles assigned to the user
 # + return - JWT token string or internal server error
 public isolated function generateJWT(string user, string[] roles) returns string|jwt:Error {
     jwt:IssuerConfig issuerConfig = {
