@@ -23,7 +23,9 @@ dependencies = [
 modules = [
 	{org = "arundeshan", packageName = "portfolio_backend", moduleName = "portfolio_backend"},
 	{org = "arundeshan", packageName = "portfolio_backend", moduleName = "portfolio_backend.authorization"},
-	{org = "arundeshan", packageName = "portfolio_backend", moduleName = "portfolio_backend.database"}
+	{org = "arundeshan", packageName = "portfolio_backend", moduleName = "portfolio_backend.constant"},
+	{org = "arundeshan", packageName = "portfolio_backend", moduleName = "portfolio_backend.database"},
+	{org = "arundeshan", packageName = "portfolio_backend", moduleName = "portfolio_backend.jwtToken"}
 ]
 
 [[package]]
