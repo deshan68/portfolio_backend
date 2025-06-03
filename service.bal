@@ -17,7 +17,6 @@ service http:InterceptableService / on new http:Listener(9090) {
     #
     # + return - JWT token string or internal server error
     resource function get refresh() returns string|http:InternalServerError|error {
-
         string|error jwtResponse = jwtToken:generateJWT("default", "reader");
 
         if jwtResponse is error {
@@ -33,13 +32,17 @@ service http:InterceptableService / on new http:Listener(9090) {
     # Get all users (protected by JWT)
     #
     # + return - List of users, internal server error, or error
-    resource function get user\-info() returns http:InternalServerError|database:User|http:Unauthorized {
-
+    resource function get user\-info() returns http:InternalServerError|http:NotFound|database:User {
         database:User[]|error response = database:getUsers();
 
         if response is error {
             log:printError("Database error: ", response);
             return <http:InternalServerError>{body: "Internal server error"};
+        }
+
+        if response.length() == 0 {
+            log:printError("No users found");
+            return <http:NotFound>{body: "No users found"};
         }
 
         return response[0];
@@ -50,7 +53,6 @@ service http:InterceptableService / on new http:Listener(9090) {
     # + req - LogInPayload containing username and password
     # + return - JWT token string, unauthorized error, or internal server error
     resource function post login(authorization:LogInPayload req) returns string|http:Unauthorized|http:InternalServerError {
-
         boolean loginResponse = authorization:login(req.username, req.password);
         if loginResponse is false {
             log:printError("Invalid username or password");

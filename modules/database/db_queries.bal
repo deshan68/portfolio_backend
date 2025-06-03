@@ -4,7 +4,7 @@ isolated function getUsersQuery() returns sql:ParameterizedQuery {
     return
     `
         SELECT 
-            id, fist_name, last_name, position_name, about
+            id, first_name, last_name, position_name, about
         FROM 
             users;
     `;
