@@ -7,9 +7,9 @@ public configurable JWTInterceptorConfig jwtInterceptorConfig = ?;
 # Handle JWT generation and user management
 #
 # + user - Username for which the JWT token is generated 
-# + roles - Array of roles assigned to the user
+# + role - Array of roles assigned to the user
 # + return - JWT token string or internal server error
-public isolated function generateJWT(string user, string[] roles) returns string|jwt:Error {
+public isolated function generateJWT(string user, string role) returns string|jwt:Error {
     jwt:IssuerConfig issuerConfig = {
         issuer: jwtInterceptorConfig.issuer,
         audience: jwtInterceptorConfig.audience,
@@ -21,7 +21,7 @@ public isolated function generateJWT(string user, string[] roles) returns string
         },
         customClaims: {
             user,
-            roles
+            role
         }
     };
 
@@ -32,7 +32,7 @@ public isolated function generateJWT(string user, string[] roles) returns string
 #
 # + jwtToken - JWT token string to validate
 # + return - JWT payload or error response
-public isolated function validateJWT(string jwtToken) returns http:Unauthorized|http:InternalServerError|jwt:Payload {
+public isolated function validateJWT(string jwtToken) returns http:Unauthorized|http:InternalServerError|JwtPayload {
     jwt:ValidatorConfig validatorConfig = {
         issuer: jwtInterceptorConfig.issuer,
         audience: jwtInterceptorConfig.audience,

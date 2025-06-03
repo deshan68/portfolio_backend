@@ -1,7 +1,6 @@
 import portfolio_backend.jwtToken;
 
 import ballerina/http;
-import ballerina/jwt;
 import ballerina/log;
 
 public configurable AdminConfig adminConfig = ?;
@@ -34,12 +33,12 @@ public isolated service class JwtAuthInterceptor {
 
         string jwtToken = authHeader.substring(7);
 
-        http:Unauthorized|http:InternalServerError|jwt:Payload|error payload = jwtToken:validateJWT(jwtToken);
-        if payload is http:Unauthorized|http:InternalServerError {
+        http:Unauthorized|http:InternalServerError|jwtToken:JwtPayload|error payload = jwtToken:validateJWT(jwtToken);
+        if payload is http:Unauthorized|http:InternalServerError|error {
             return payload;
         }
 
-        ctx.set(HEADER_JWT_PAYLOAD, check payload);
+        ctx.set(HEADER_JWT_PAYLOAD, payload);
         return ctx.next();
     }
 }
@@ -50,4 +49,12 @@ public isolated function login(string username, string password) returns boolean
     }
 
     return true;
+}
+
+public isolated function checkPermission(string currentRoles, string requiredRole) returns boolean {
+    if (requiredRole == currentRoles) {
+        return true;
+    }
+
+    return false;
 }

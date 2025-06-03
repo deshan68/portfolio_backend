@@ -15,7 +15,7 @@ public type JWTInterceptorConfig record {|
 # + nbf - not before time of the JWT token in seconds since epoch
 # + iat - issued at time of the JWT token in seconds since epoch
 # + user - unique identifier for the user
-# + roles - array of roles assigned to the user  
+# + role - array of roles assigned to the user  
 public type JwtPayload record {|
     string iss;
     string aud;
@@ -23,6 +23,6 @@ public type JwtPayload record {|
     int nbf;
     int iat;
     string user;
-    string[] roles;
+    string role;
 |};
 
