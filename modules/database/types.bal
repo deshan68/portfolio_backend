@@ -29,7 +29,7 @@ public type User record {|
 
     # User position
     @sql:Column {name: "position_name"}
-    string position;
+    string positionName;
 
     # User about
     @sql:Column {name: "about"}
@@ -45,7 +45,7 @@ public type UserCreate record {|
     string lastName;
 
     # User position
-    string position;
+    string positionName;
 
     # User about
     string about;

@@ -1,5 +1,4 @@
 import portfolio_backend.authorization;
-import portfolio_backend.constant;
 import portfolio_backend.database;
 import portfolio_backend.jwtToken;
 
@@ -20,9 +19,9 @@ service http:InterceptableService / on new http:Listener(9090) {
         string|error jwtResponse = jwtToken:generateJWT("default", "reader");
 
         if jwtResponse is error {
-            log:printError(constant:JWT_CREATION_ERROR, jwtResponse);
+            log:printError("Error while creating JWT.", jwtResponse);
             return <http:InternalServerError>{
-                body: constant:JWT_CREATION_ERROR
+                body: "Error while creating JWT."
             };
         }
 
@@ -48,6 +47,31 @@ service http:InterceptableService / on new http:Listener(9090) {
         return response[0];
     }
 
+    # Create a new user (protected by JWT)
+    #
+    # + payload - UserCreate payload containing user details
+    # + return - SQL execution result or error
+    resource function post users(http:RequestContext ctx, database:UserCreate payload) returns http:InternalServerError|http:Created & readonly|http:Unauthorized {
+        jwtToken:JwtPayload|error authPayload = ctx.getWithType(authorization:HEADER_JWT_PAYLOAD);
+        if authPayload is error {
+            log:printError("Failed to retrieve JWT payload from context", authPayload);
+            return <http:InternalServerError>{body: "Unable to retrieve user context"};
+        }
+
+        if (authorization:checkPermission(authPayload.role, "admin") is false) {
+            return <http:Unauthorized>{body: "Insufficient permissions"};
+        }
+
+        sql:ExecutionResult|error result = database:createUser(payload);
+
+        if result is error {
+            log:printError("Database error: ", result);
+            return <http:InternalServerError>{body: "Internal server error"};
+        }
+
+        return http:CREATED;
+    }
+
     # Endpoint for user login
     #
     # + req - LogInPayload containing username and password
@@ -61,9 +85,9 @@ service http:InterceptableService / on new http:Listener(9090) {
 
         string|error jwtResponse = jwtToken:generateJWT(req.username, "admin");
         if jwtResponse is error {
-            log:printError(constant:JWT_CREATION_ERROR, jwtResponse);
+            log:printError("Error while creating JWT.", jwtResponse);
             return <http:InternalServerError>{
-                body: constant:JWT_CREATION_ERROR
+                body: "Error while creating JWT."
             };
         }
 
@@ -88,7 +112,17 @@ service http:InterceptableService / on new http:Listener(9090) {
     #
     # + payload - ProjectCreate payload containing project details
     # + return - SQL execution result or error
-    resource function post projects(database:ProjectCreate payload) returns http:InternalServerError|http:Created {
+    resource function post projects(http:RequestContext ctx, database:ProjectCreate payload) returns http:InternalServerError|http:Created & readonly|http:Unauthorized {
+        jwtToken:JwtPayload|error authPayload = ctx.getWithType(authorization:HEADER_JWT_PAYLOAD);
+        if authPayload is error {
+            log:printError("Failed to retrieve JWT payload from context", authPayload);
+            return <http:InternalServerError>{body: "Unable to retrieve user context"};
+        }
+
+        if (authorization:checkPermission(authPayload.role, "admin") is false) {
+            return <http:Unauthorized>{body: "Insufficient permissions"};
+        }
+
         sql:ExecutionResult|error result = database:createProject(payload);
 
         if result is error {

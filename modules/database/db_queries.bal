@@ -10,6 +10,26 @@ isolated function getUsersQuery() returns sql:ParameterizedQuery {
     `;
 }
 
+isolated function createUserQuery(UserCreate payload) returns sql:ParameterizedQuery {
+    return
+    `
+        INSERT INTO users 
+            (
+                first_name, 
+                last_name, 
+                position_name, 
+                about
+            )
+        VALUES 
+            (
+                ${payload.firstName}, 
+                ${payload.lastName}, 
+                ${payload.positionName}, 
+                ${payload.about}
+            )
+    `;
+}
+
 isolated function getProjectsQuery() returns sql:ParameterizedQuery {
     return
     `

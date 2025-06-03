@@ -12,6 +12,10 @@ public isolated function getUsers() returns User[]|sql:Error {
     return error("Error fetching Users");
 }
 
+public isolated function createUser(UserCreate payload) returns sql:ExecutionResult|sql:Error {
+    return dbClient->execute(createUserQuery(payload));
+}
+
 public isolated function getTechStackByProjectId(string id) returns string[]|sql:Error {
     stream<TechStack, sql:Error?> techStackStream = dbClient->query(getTechStackByProjectIdQuery(id));
 
