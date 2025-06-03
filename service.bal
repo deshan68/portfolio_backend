@@ -18,7 +18,7 @@ service http:InterceptableService / on new http:Listener(9090) {
     # + return - JWT token string or internal server error
     resource function get refresh() returns string|http:InternalServerError|error {
 
-        string|error jwtResponse = jwtToken:generateJWT("default", ["reader"]);
+        string|error jwtResponse = jwtToken:generateJWT("default", "reader");
 
         if jwtResponse is error {
             log:printError(constant:JWT_CREATION_ERROR, jwtResponse);
@@ -32,18 +32,8 @@ service http:InterceptableService / on new http:Listener(9090) {
 
     # Get all users (protected by JWT)
     #
-    # + ctx - Request context containing JWT payload
     # + return - List of users, internal server error, or error
-    resource function get user\-info(http:RequestContext ctx) returns http:InternalServerError|database:User[]|http:Unauthorized {
-        jwtToken:JwtPayload|error payload = ctx.getWithType(authorization:HEADER_JWT_PAYLOAD);
-        if payload is error {
-            log:printError("Failed to retrieve JWT payload from context", payload);
-            return <http:InternalServerError>{body: "Unable to retrieve user context"};
-        }
-
-        // if (payload.roles[0] != "admin") {
-        //     return <http:Unauthorized>{body: "Insufficient permissions"};
-        // }
+    resource function get user\-info() returns http:InternalServerError|database:User|http:Unauthorized {
 
         database:User[]|error response = database:getUsers();
 
@@ -52,7 +42,7 @@ service http:InterceptableService / on new http:Listener(9090) {
             return <http:InternalServerError>{body: "Internal server error"};
         }
 
-        return response;
+        return response[0];
     }
 
     # Endpoint for user login
@@ -67,7 +57,7 @@ service http:InterceptableService / on new http:Listener(9090) {
             return <http:Unauthorized>{body: "Invalid username or password"};
         }
 
-        string|error jwtResponse = jwtToken:generateJWT(req.username, ["admin"]);
+        string|error jwtResponse = jwtToken:generateJWT(req.username, "admin");
         if jwtResponse is error {
             log:printError(constant:JWT_CREATION_ERROR, jwtResponse);
             return <http:InternalServerError>{
@@ -81,8 +71,8 @@ service http:InterceptableService / on new http:Listener(9090) {
     # Get all projects (protected by JWT)
     #
     # + return - List of projects, internal server error, or unauthorized
-    resource function get projects() returns http:InternalServerError|database:Project[]|http:Unauthorized {
-        database:Project[]|error response = database:getProjects();
+    resource function get projects() returns http:InternalServerError|database:ProjectWithTechStack[] {
+        database:ProjectWithTechStack[]|sql:Error response = database:getProjects();
 
         if response is error {
             log:printError("Database error: ", response);
@@ -125,8 +115,96 @@ service http:InterceptableService / on new http:Listener(9090) {
     #
     # + payload - WritingCreate payload containing writing details
     # + return - SQL execution result or error
-    resource function post writings(database:WritingCreate payload) returns http:InternalServerError|http:Created {
+    resource function post writings(http:RequestContext ctx, database:WritingCreate payload) returns http:InternalServerError|http:Created & readonly|http:Unauthorized {
+        jwtToken:JwtPayload|error authPayload = ctx.getWithType(authorization:HEADER_JWT_PAYLOAD);
+        if authPayload is error {
+            log:printError("Failed to retrieve JWT payload from context", authPayload);
+            return <http:InternalServerError>{body: "Unable to retrieve user context"};
+        }
+
+        if (authorization:checkPermission(authPayload.role, "admin") is false) {
+            return <http:Unauthorized>{body: "Insufficient permissions"};
+        }
         sql:ExecutionResult|error result = database:createWriting(payload);
+
+        if result is error {
+            log:printError("Database error: ", result);
+            return <http:InternalServerError>{body: "Internal server error"};
+        }
+
+        return http:CREATED;
+    }
+
+    # Get all tech stacks (protected by JWT)
+    #
+    # + return - List of tech stacks, internal server error, or unauthorized
+    resource function get tech\-stacks() returns http:InternalServerError|database:TechStack[] {
+        database:TechStack[]|error response = database:getTechStacks();
+
+        if response is error {
+            log:printError("Database error: ", response);
+            return <http:InternalServerError>{body: "Internal server error"};
+        }
+
+        return response;
+    }
+
+    # Create a new tech stack (protected by JWT)
+    #
+    # + payload - TechStackCreate payload containing tech stack details
+    # + return - SQL execution result or error
+    resource function post tech\-stacks(http:RequestContext ctx, database:TechStackCreate payload) returns http:InternalServerError|http:Created & readonly|http:Unauthorized {
+        jwtToken:JwtPayload|error authPayload = ctx.getWithType(authorization:HEADER_JWT_PAYLOAD);
+        if authPayload is error {
+            log:printError("Failed to retrieve JWT payload from context", authPayload);
+            return <http:InternalServerError>{body: "Unable to retrieve user context"};
+        }
+
+        if (authorization:checkPermission(authPayload.role, "admin") is false) {
+            return <http:Unauthorized>{body: "Insufficient permissions"};
+        }
+
+        sql:ExecutionResult|error result = database:createTechStack(payload);
+
+        if result is error {
+            log:printError("Database error: ", result);
+            return <http:InternalServerError>{body: "Internal server error"};
+        }
+
+        return http:CREATED;
+    }
+
+    # Get all experiences (protected by JWT)
+    #
+    # + return - List of experiences, internal server error, or unauthorized
+    resource function get experiences() returns http:InternalServerError|database:ExperienceWithTechStack[]|http:Unauthorized {
+        database:ExperienceWithTechStack[]|error response = database:getExperiences();
+
+        if response is error {
+            log:printError("Database error: ", response);
+            return <http:InternalServerError>{body: "Internal server error"};
+        }
+
+        return response;
+    }
+
+    # Create a new experience (protected by JWT)
+    #
+    # + ctx - Request context to extract JWT payload
+    # + payload - ExperienceCreate payload containing experience details
+    # + return - SQL execution result or error
+    resource function post experiences(http:RequestContext ctx, database:ExperienceCreate payload) returns http:InternalServerError|http:Created & readonly|http:Unauthorized {
+        jwtToken:JwtPayload|error authPayload = ctx.getWithType(authorization:HEADER_JWT_PAYLOAD);
+        if authPayload is error {
+            log:printError("Failed to retrieve JWT payload from context", authPayload);
+            return <http:InternalServerError>{body: "Unable to retrieve user context"};
+        }
+
+        if (authorization:checkPermission(authPayload.role, "admin") is false) {
+            return <http:Unauthorized>{body: "Insufficient permissions"};
+        }
+
+        sql:ExecutionResult|error result = database:createExperience(payload);
 
         if result is error {
             log:printError("Database error: ", result);
