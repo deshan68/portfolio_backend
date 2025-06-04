@@ -1,0 +1,18 @@
+[portfolio_backend.database.dbConfig]
+user=""
+password=""
+host=""
+port=
+database=""
+
+[portfolio_backend.jwtToken.jwtInterceptorConfig]
+issuer = ""
+audience = ""
+certFile = "keys/public.crt" 
+privateKeyFile = "keys/private.key" 
+tokenExpiry = 
+clockSkew = 
+
+[portfolio_backend.authorization.adminConfig]
+adminUsername = ""
+adminPassword = ""
